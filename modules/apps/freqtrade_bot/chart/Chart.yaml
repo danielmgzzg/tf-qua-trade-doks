@@ -1,0 +1,7 @@
+
+apiVersion: v2
+name: freqtrade-bot
+description: Minimal Freqtrade bot (dry/live) with optional Secret ref
+type: application
+version: 0.1.0
+appVersion: "stable"

@@ -1,0 +1,25 @@
+replicaCount: 1
+
+image:
+  repository: freqtradeorg/freqtrade
+  tag: stable
+  pullPolicy: IfNotPresent
+
+mode: dry  # dry | live
+strategyName: BasicStrategy
+strategyPath: /config/strategies
+secretRef: ""   # when live, set to Secret containing config.json
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "256Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+service:
+  port: 8080
+
+persistence:
+  enabled: false

@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "freqtrade-bot.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "freqtrade-bot.name" . }}
+    app: {{ include "freqtrade-bot.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ include "freqtrade-bot.fullname" . }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        app: {{ include "freqtrade-bot.fullname" . }}
+    spec:
+      containers:
+        - name: freqtrade
+          image: "{{ .Values.image.repository | default "freqtradeorg/freqtrade" }}:{{ .Values.image.tag | default "stable" }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+          args:
+            - "trade"
+            - "-c"
+            - "/config/config.json"
+            {{- if eq .Values.mode "dry" }}
+            - "--dry-run"
+            {{- end }}
+            - "--db-url"
+            - "sqlite:////data/trades.sqlite"
+            - "--strategy"
+            - "{{ .Values.strategyName | default "BasicStrategy" }}"
+            - "--strategy-path"
+            - "{{ .Values.strategyPath | default "/config/strategies" }}"
+          ports:
+            - containerPort: {{ .Values.service.port | default 8080 }}
+          volumeMounts:
+            - name: cfg
+              mountPath: /config
+              readOnly: true
+            - name: strategies
+              mountPath: {{ .Values.strategyPath | default "/config/strategies" }}
+              readOnly: true
+            - name: data
+              mountPath: /data
+          resources:
+{{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: cfg
+          projected:
+            sources:
+              {{- if .Values.secretRef }}
+              - secret:
+                  name: {{ .Values.secretRef }}
+                  items:
+                    - key: config.json
+                      path: config.json
+              {{- else }}
+              - configMap:
+                  name: {{ include "freqtrade-bot.fullname" . }}-cfg
+                  items:
+                    - key: config.json
+                      path: config.json
+              {{- end }}
+        - name: strategies
+          configMap:
+            name: {{ include "freqtrade-bot.fullname" . }}-strategy
+            items:
+              - key: BasicStrategy.py
+                path: BasicStrategy.py
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "freqtrade-bot.fullname" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "freqtrade-bot.fullname" . }}
+spec:
+  selector:
+    app: {{ include "freqtrade-bot.fullname" . }}
+  ports:
+    - port: {{ .Values.service.port | default 8080 }}
+      targetPort: {{ .Values.service.port | default 8080 }}
+  type: ClusterIP
