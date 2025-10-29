@@ -9,12 +9,12 @@ min_nodes    = 1
 max_nodes    = 2
 
 enable_bot         = true
-enable_cloudflared = false
+enable_cloudflared = true
 
 bot_namespace = "bot-demo"
 bot_name      = "bot-demo"
 bot_strategy  = "SampleStrategy"
 
 cloudflare_mappings = [
-  { host = "bot.example.com", service_name = "freqtrade-bot-bot-demo", service_port = 8080 }
+  { host = "bot-dev.quadr.app", service_name = "freqtrade-bot-bot-demo", service_port = 8080 }
 ]

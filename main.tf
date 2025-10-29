@@ -65,7 +65,7 @@ resource "kubernetes_secret" "cloudflared_token" {
     namespace = var.ingress_namespace
   }
   data = {
-    token = base64encode(local.cloudflare_token_value)
+    token = local.cloudflare_token_value
   }
   depends_on = [kubernetes_namespace.ingress]
 }
@@ -76,6 +76,7 @@ module "cloudflared" {
   namespace            = var.ingress_namespace
   existing_secret_name = "cloudflared-token"
   mappings             = var.cloudflare_mappings
+  depends_on           = [kubernetes_secret.cloudflared_token]
 }
 
 module "freqtrade_bot" {

@@ -25,10 +25,6 @@ resource "digitalocean_vpc" "vpc" {
   name     = "${var.name}-vpc"
   region   = var.region
   ip_range = "10.42.0.0/16"
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "digitalocean_kubernetes_cluster" "this" {
