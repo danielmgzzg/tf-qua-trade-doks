@@ -8,7 +8,7 @@ include $(ENV_FILE)
 export
 
 TF_DIR := .
-VAR_FILE ?= examples/minimal/terraform.tfvars
+VAR_FILE ?= environments/prd.tfvars
 ARGS := $(if $(VAR_FILE),-var-file=$(VAR_FILE),)
 
 init:
@@ -33,7 +33,7 @@ destroy:
 		-var doppler_config=$$DOPPLER_CONFIG
 
 kubeconfig:
-	terraform -chdir=. apply -auto-approve -target=local_file.kubeconfig
+	terraform -chdir=. apply -auto-approve -target=local_file.kubeconfig_prd
 
 k9s: kubeconfig
 	KUBECONFIG=./kubeconfig k9s

@@ -24,7 +24,7 @@ variable "doppler_project" {
 
 variable "doppler_config" {
   type    = string
-  default = "prod"
+  default = "dev"
 }
 
 variable "doppler_cloudflare_token_key" {
@@ -103,15 +103,16 @@ variable "bot_namespace" {
   default = "bot-demo"
 }
 
-variable "bot_name" {
-  type    = string
-  default = "bot-demo"
+variable "freqtrade_bots" {
+  description = "Bots to deploy into the cluster"
+  type = map(object({
+    strategy       = string
+    live           = bool
+    pair_whitelist = list(string)
+  }))
+  default = {}
 }
 
-variable "bot_strategy" {
-  type    = string
-  default = "SampleStrategy"
-}
 
 variable "bot_persistence" {
   type    = bool

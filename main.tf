@@ -23,6 +23,8 @@ data "doppler_secrets" "all" {
 }
 
 locals {
+  bots = var.freqtrade_bots
+
   do_token_value = (
     var.use_doppler_for_do
     ? try(data.doppler_secrets.all[0].map[var.doppler_do_token_key], "")
@@ -164,20 +166,24 @@ module "cloudflared" {
 }
 
 module "freqtrade_bot" {
-  count       = var.enable_bot ? 1 : 0
+  for_each = var.enable_bot ? local.bots : {}
+
   source      = "./modules/apps/freqtrade_bot"
   namespace   = var.bot_namespace
-  name        = var.bot_name
-  mode        = "dry"
-  strategy    = var.bot_strategy
-  secret_ref  = kubernetes_secret.freqtrade_config.metadata[0].name
+  name        = each.key
+  mode        = each.value.live ? "live" : "dry"
+  strategy    = each.value.strategy
+  secret_ref  = each.value.live ? kubernetes_secret.freqtrade_config[0].metadata[0].name : ""
   persistence = var.bot_persistence
   resources   = var.bot_resources
 }
 
 resource "kubernetes_secret" "freqtrade_config" {
+  count = var.enable_bot ? 1 : 0
+
   metadata {
-    name      = "${var.bot_name}-config"
+    # one secret per env/cluster
+    name      = "${var.bot_namespace}-freqtrade-config"
     namespace = var.bot_namespace
   }
 
