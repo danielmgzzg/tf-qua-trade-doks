@@ -16,7 +16,7 @@ provider "doppler" {
 
 # Pull once from Doppler (shared for DO + Cloudflare)
 data "doppler_secrets" "all" {
-  count    = (var.use_doppler_for_cloudflared || var.use_doppler_for_do) ? 1 : 0
+  count    = (var.use_doppler_for_cloudflared || var.use_doppler_for_do || var.use_doppler_for_freqtrade) ? 1 : 0
   project  = var.doppler_project
   config   = var.doppler_config
   provider = doppler.default
@@ -36,6 +36,90 @@ locals {
       : var.cloudflare_tunnel_token
     ) : ""
   )
+  # Helpers to pull from doppler_secrets map if enabled, otherwise empty string
+  freqtrade_api_username_value = (
+    var.use_doppler_for_freqtrade
+    ? try(data.doppler_secrets.all[0].map[var.doppler_freqtrade_api_username_key], "")
+    : ""
+  )
+
+  freqtrade_api_password_value = (
+    var.use_doppler_for_freqtrade
+    ? try(data.doppler_secrets.all[0].map[var.doppler_freqtrade_api_password_key], "")
+    : ""
+  )
+
+  freqtrade_jwt_secret_key_value = (
+    var.use_doppler_for_freqtrade
+    ? try(data.doppler_secrets.all[0].map[var.doppler_freqtrade_jwt_secret_key_key], "")
+    : ""
+  )
+
+  kraken_api_key_value = (
+    var.use_doppler_for_freqtrade
+    ? try(data.doppler_secrets.all[0].map[var.doppler_kraken_api_key_key], "")
+    : ""
+  )
+
+  kraken_api_secret_value = (
+    var.use_doppler_for_freqtrade
+    ? try(data.doppler_secrets.all[0].map[var.doppler_kraken_api_secret_key], "")
+    : ""
+  )
+
+  freqtrade_config_live = jsonencode({
+    dry_run         = false
+    dry_run_wallet  = 0
+    max_open_trades = 1
+    stake_currency  = "USDT"
+    stake_amount    = "unlimited"
+    timeframe       = "15m"
+
+    exchange = {
+      name   = "kraken"
+      key    = local.kraken_api_key_value
+      secret = local.kraken_api_secret_value
+
+      ccxt_config = {
+        enableRateLimit = true
+      }
+      ccxt_async_config = {
+        enableRateLimit = true
+      }
+      pair_whitelist = [
+        "BTC/USDT",
+        "ETH/USDT"
+      ]
+      pair_blacklist = []
+    }
+
+    pairlists = [
+      { method = "StaticPairList" }
+    ]
+
+    entry_pricing = {
+      price_side     = "ask"
+      use_order_book = false
+      fallback       = "last"
+    }
+
+    exit_pricing = {
+      price_side     = "bid"
+      use_order_book = false
+      fallback       = "last"
+    }
+
+    api_server = {
+      enabled           = true
+      listen_ip_address = "0.0.0.0"
+      listen_port       = 8080
+      verbosity         = "error"
+      enable_openapi    = false
+      username          = local.freqtrade_api_username_value
+      password          = local.freqtrade_api_password_value
+      jwt_secret_key    = local.freqtrade_jwt_secret_key_value
+    }
+  })
 }
 
 module "cluster" {
@@ -86,7 +170,21 @@ module "freqtrade_bot" {
   name        = var.bot_name
   mode        = "dry"
   strategy    = var.bot_strategy
-  secret_ref  = ""
+  secret_ref  = kubernetes_secret.freqtrade_config.metadata[0].name
   persistence = var.bot_persistence
   resources   = var.bot_resources
 }
+
+resource "kubernetes_secret" "freqtrade_config" {
+  metadata {
+    name      = "${var.bot_name}-config"
+    namespace = var.bot_namespace
+  }
+
+  data = {
+    "config.json" = local.freqtrade_config_live
+  }
+
+  type = "Opaque"
+}
+

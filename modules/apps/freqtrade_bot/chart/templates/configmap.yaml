@@ -10,10 +10,12 @@ data:
       "max_open_trades": 1,
       "stake_currency": "USDT",
       "stake_amount": "unlimited",
-      "timeframe": "5m",
+      "timeframe": "15m",
 
       "exchange": {
-        "name": "binance",
+        "name": "kraken",
+        "key": "DO_NOT_USE_IN_PROD",
+        "secret": "DO_NOT_USE_IN_PROD",
         "ccxt_config": { "enableRateLimit": true },
         "ccxt_async_config": { "enableRateLimit": true },
         "pair_whitelist": ["BTC/USDT", "ETH/USDT"],
@@ -33,6 +35,6 @@ data:
         "enable_openapi": false,
         "username": "admin",
         "password": "changeme-please",
-        "jwt_secret_key": "replace-with-long-random"
+        "jwt_secret_key": "NOT_FOR_PROD"
       }
     }

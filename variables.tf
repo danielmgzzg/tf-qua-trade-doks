@@ -128,3 +128,41 @@ variable "bot_resources" {
     limits   = { cpu = "500m", memory = "512Mi" }
   }
 }
+
+variable "use_doppler_for_freqtrade" {
+  type        = bool
+  default     = true
+  description = "If true, read all Freqtrade and Kraken secrets from Doppler"
+}
+
+# Doppler keys (the names of secrets in Doppler)
+# These should match your Doppler project config keys
+variable "doppler_freqtrade_api_username_key" {
+  type        = string
+  default     = "FREQTRADE_API_USERNAME"
+  description = "Doppler key for Freqtrade API username"
+}
+
+variable "doppler_freqtrade_api_password_key" {
+  type        = string
+  default     = "FREQTRADE_API_PASSWORD"
+  description = "Doppler key for Freqtrade API password"
+}
+
+variable "doppler_freqtrade_jwt_secret_key_key" {
+  type        = string
+  default     = "FREQTRADE_JWT_SECRET_KEY"
+  description = "Doppler key for Freqtrade JWT secret"
+}
+
+variable "doppler_kraken_api_key_key" {
+  type        = string
+  default     = "KRAKEN_API_KEY"
+  description = "Doppler key for Kraken API key"
+}
+
+variable "doppler_kraken_api_secret_key" {
+  type        = string
+  default     = "KRAKEN_API_SECRET"
+  description = "Doppler key for Kraken API secret"
+}
