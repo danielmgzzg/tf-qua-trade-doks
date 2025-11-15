@@ -22,6 +22,10 @@ data "doppler_secrets" "all" {
   provider = doppler.default
 }
 
+resource "kubernetes_namespace" "ns" {
+  metadata { name = var.bot_namespace }
+}
+
 locals {
   bots = var.freqtrade_bots
 
@@ -167,7 +171,7 @@ module "cloudflared" {
 
 module "freqtrade_bot" {
   for_each = var.enable_bot ? local.bots : {}
-
+  depends_on = [kubernetes_namespace.ns]
   source      = "./modules/apps/freqtrade_bot"
   namespace   = var.bot_namespace
   name        = each.key

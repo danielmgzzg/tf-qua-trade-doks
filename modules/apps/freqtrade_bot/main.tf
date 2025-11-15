@@ -11,15 +11,12 @@ variable "resources" {
   })
 }
 
-resource "kubernetes_namespace" "ns" {
-  metadata { name = var.namespace }
-}
+
 
 resource "helm_release" "bot" {
   name       = var.name
   namespace  = var.namespace
   chart      = "${path.module}/chart"
-  depends_on = [kubernetes_namespace.ns]
 
   values = [yamlencode({
     mode        = var.mode

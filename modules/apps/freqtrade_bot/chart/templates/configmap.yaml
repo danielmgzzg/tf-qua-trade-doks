@@ -36,5 +36,6 @@ data:
         "username": "admin",
         "password": "changeme-please",
         "jwt_secret_key": "NOT_FOR_PROD"
+        "CORS_origins": ["http://bot.quadr.app"],
       }
     }
