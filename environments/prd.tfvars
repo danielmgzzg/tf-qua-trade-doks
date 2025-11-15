@@ -16,12 +16,12 @@ cloudflare_mappings = [
 
 freqtrade_bots = {
   "btc" = {
-    strategy       = "SampleStrategy"
+    strategy       = "BasicStrategy"
     live           = true
     pair_whitelist = ["BTC/USDT"]
   },
   "btc-dev" = {
-    strategy       = "SampleStrategy"
+    strategy       = "BasicStrategy"
     live           = false
     pair_whitelist = ["BTC/USDT"]
   }

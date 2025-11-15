@@ -78,7 +78,7 @@ locals {
     dry_run_wallet  = 0
     max_open_trades = 1
     stake_currency  = "USDT"
-    stake_amount    = "unlimited"
+    stake_amount    = 10
     timeframe       = "15m"
 
     exchange = {
