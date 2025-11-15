@@ -23,6 +23,6 @@ freqtrade_bots = {
   "btc-dev" = {
     strategy       = "BasicStrategy"
     live           = false
-    pair_whitelist = ["BTC/USDT"]
+    pair_whitelist = ["BTC/USD"]
   }
 }

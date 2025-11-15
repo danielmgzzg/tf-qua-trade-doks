@@ -77,7 +77,7 @@ locals {
     dry_run         = false
     dry_run_wallet  = 0
     max_open_trades = 1
-    stake_currency  = "USDT"
+    stake_currency  = "USD"
     stake_amount    = 10
     timeframe       = "15m"
 
@@ -93,8 +93,8 @@ locals {
         enableRateLimit = true
       }
       pair_whitelist = [
-        "BTC/USDT",
-        "ETH/USDT"
+        "BTC/USD",
+        "ETH/USD"
       ]
       pair_blacklist = []
     }
@@ -170,8 +170,8 @@ module "cloudflared" {
 }
 
 module "freqtrade_bot" {
-  for_each = var.enable_bot ? local.bots : {}
-  depends_on = [kubernetes_namespace.ns]
+  for_each    = var.enable_bot ? local.bots : {}
+  depends_on  = [kubernetes_namespace.ns]
   source      = "./modules/apps/freqtrade_bot"
   namespace   = var.bot_namespace
   name        = each.key
