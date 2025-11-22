@@ -1,0 +1,24 @@
+from freqtrade.strategy.interface import IStrategy
+from pandas import DataFrame
+
+
+class BasicStrategy(IStrategy):
+    timeframe = "5m"
+    minimal_roi = {"0": 0.01}
+    stoploss = -0.02
+    trailing_stop = False
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe["sma_fast"] = dataframe["close"].rolling(10).mean()
+        dataframe["sma_slow"] = dataframe["close"].rolling(20).mean()
+        return dataframe
+
+    def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        cond = dataframe["sma_fast"] > dataframe["sma_slow"]
+        dataframe["buy"] = cond.astype("int")
+        return dataframe
+
+    def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        cond = dataframe["sma_fast"] < dataframe["sma_slow"]
+        dataframe["sell"] = cond.astype("int")
+        return dataframe

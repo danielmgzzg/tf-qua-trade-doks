@@ -3,3 +3,6 @@ terraform.tfstate
 terraform.tfstate.backup
 .terraform
 kubeconfig
+*.egg-info
+user_data/
+__pycache__/

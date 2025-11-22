@@ -10,6 +10,15 @@ export
 TF_DIR := .
 VAR_FILE ?= environments/prd.tfvars
 ARGS := $(if $(VAR_FILE),-var-file=$(VAR_FILE),)
+# Local backtest config (adjust path to whatever you use)
+CONFIG    ?= ../config.backtest.json
+# Strategy name as used by freqtrade (module.Class)
+STRATEGY  := SmaRsiATRStrategy
+UV ?= uv
+PAIRS     := BTC/USDT ETH/USDT
+TIMEFRAME := 1h
+DAYS      := 7
+TIMERANGE := 20240101-20241101
 
 init:
 	terraform -chdir=$(TF_DIR) init
@@ -40,3 +49,30 @@ k9s: kubeconfig
 
 kubectl: kubeconfig
 	KUBECONFIG=./kubeconfig kubectl get ns
+
+
+install:
+	cd strategies && uv sync
+
+create-user-data:
+	cd strategies && uv run freqtrade create-userdir \
+	--userdir ./user_data
+
+download-data:
+	cd strategies && uv run freqtrade download-data \
+		--config $(CONFIG) \
+		--dl-trades \
+		--trading-mode spot \
+		--timeframe $(TIMEFRAME) \
+		--pairs $(PAIRS) \
+		--timerange $(TIMERANGE) \
+		--erase
+
+backtest:
+	cd strategies && $(UV) run freqtrade backtesting \
+		--config $(CONFIG) \
+		--strategy $(STRATEGY) \
+		--strategy-path src \
+		--timeframe 1h \
+		--timerange $(TIMERANGE) \
+		--export trades
